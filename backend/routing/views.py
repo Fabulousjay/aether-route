@@ -1,4 +1,3 @@
-
 from datetime import datetime
 from math import isfinite
 
@@ -6,6 +5,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from .services.batch_weather import analyze_checkpoints_batch
 from .services.checkpoints import generate_checkpoints
 from .services.risk import (
     RISK_SCORES,
@@ -15,7 +15,6 @@ from .services.risk import (
 from .services.routes import RoutingError, get_routes
 from .services.weather import (
     WeatherServiceError,
-    analyze_checkpoint_weather,
     get_corridor_weather,
     get_weather_timeline,
 )
@@ -109,10 +108,7 @@ def weather_corridor(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    if (
-        isinstance(hours, bool)
-        or isinstance(sample_count, bool)
-    ):
+    if isinstance(hours, bool) or isinstance(sample_count, bool):
         return Response(
             {
                 "error": (
@@ -148,40 +144,63 @@ def weather_corridor(request):
     return Response(corridor)
 
 
+def unavailable_analysis(reason, checkpoint_count):
+    return {
+        "status": "unavailable",
+        "reason": str(reason),
+        "checkpoint_count": checkpoint_count,
+        "checkpoints": [],
+        "summary": None,
+        "risk_miles": None,
+    }
+
+
 def analyze_route(route, departure, interval, weight):
-    journey = generate_checkpoints(route, departure, interval)
+    try:
+        journey = generate_checkpoints(
+            route,
+            departure,
+            interval,
+        )
+    except (ValueError, KeyError, TypeError) as error:
+        return unavailable_analysis(str(error), 0)
+
     checkpoints = journey["checkpoints"]
 
     if len(checkpoints) > MAX_WEATHER_CHECKPOINTS:
-        return {
-            "status": "unavailable",
-            "reason": (
+        return unavailable_analysis(
+            (
                 "This route has too many checkpoints for the current "
                 "weather request limit. Choose a larger checkpoint interval."
             ),
-            "checkpoint_count": len(checkpoints),
-            "checkpoints": [],
-            "summary": None,
-            "risk_miles": None,
-        }
-
-    scored = []
+            len(checkpoints),
+        )
 
     try:
-        for checkpoint in checkpoints:
-            forecast = analyze_checkpoint_weather(checkpoint)
-            scored.append(score_checkpoint(forecast, weight))
-    except (WeatherServiceError, ValueError, KeyError) as error:
-        return {
-            "status": "unavailable",
-            "reason": str(error),
-            "checkpoint_count": len(checkpoints),
-            "checkpoints": [],
-            "summary": None,
-            "risk_miles": None,
-        }
+        forecasts = analyze_checkpoints_batch(checkpoints)
 
-    summary = summarize_checkpoint_risks(scored)
+        if len(forecasts) != len(checkpoints):
+            raise WeatherServiceError(
+                "Incomplete checkpoint weather analysis."
+            )
+
+        scored = [
+            score_checkpoint(forecast, weight)
+            for forecast in forecasts
+        ]
+
+        summary = summarize_checkpoint_risks(scored)
+
+    except (
+        WeatherServiceError,
+        ValueError,
+        KeyError,
+        TypeError,
+    ) as error:
+        return unavailable_analysis(
+            str(error),
+            len(checkpoints),
+        )
 
     risk_miles = {
         level: 0.0

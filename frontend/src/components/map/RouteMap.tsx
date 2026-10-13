@@ -10,6 +10,10 @@ import type {
 import type { WeatherTimelineFrame } from '../../services/weather'
 import type { ActiveCorridorSample } from '../../hooks/useCorridorWeather'
 import { addCorridorMarkers } from './corridorMarkers'
+import {
+  createCorridorHeatmapData,
+  corridorHeatmapLayer,
+} from './corridorHeatmap'
 import { CorridorLegend } from './CorridorLegend'
 import './CorridorLegend.css'
 
@@ -416,6 +420,13 @@ export function RouteMap({
         data: createRiskData(resultRef.current),
       })
 
+      map.addSource('corridor-heatmap', {
+        type: 'geojson',
+        data: createCorridorHeatmapData([]),
+      })
+
+      map.addLayer(corridorHeatmapLayer)
+
       for (let index = 0; index < 3; index++) {
         const filter: maplibregl.FilterSpecification = [
           '==',
@@ -808,6 +819,17 @@ export function RouteMap({
   ])
 
   useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+
+    const source = map.getSource(
+      'corridor-heatmap'
+    ) as maplibregl.GeoJSONSource | undefined
+
+    source?.setData(createCorridorHeatmapData(corridorSamples))
+  }, [mapReady, corridorSamples])
+
+  useEffect(() => {
     corridorMarkersRef.current.forEach(marker => marker.remove())
     corridorMarkersRef.current = []
 
@@ -832,7 +854,7 @@ export function RouteMap({
   return (
     <div className="route-map">
       <div ref={containerRef} className="route-map-canvas" />
-    <CorridorLegend visible={corridorSamples.length > 0} />
+      <CorridorLegend visible={corridorSamples.length > 0} />
     </div>
   )
 }

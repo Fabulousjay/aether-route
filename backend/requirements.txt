@@ -1,0 +1,7 @@
+
+Django>=6.0,<6.1
+djangorestframework>=3.16,<4
+django-cors-headers>=4.7,<5
+requests>=2.32,<3
+gunicorn>=23,<26
+whitenoise>=6.9,<7
