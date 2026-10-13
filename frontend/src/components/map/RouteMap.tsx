@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -9,6 +8,10 @@ import type {
   WeatherCheckpoint,
 } from '../../services/api'
 import type { WeatherTimelineFrame } from '../../services/weather'
+import type { ActiveCorridorSample } from '../../hooks/useCorridorWeather'
+import { addCorridorMarkers } from './corridorMarkers'
+import { CorridorLegend } from './CorridorLegend'
+import './CorridorLegend.css'
 
 type RouteMapProps = {
   result?: RouteResult | null
@@ -19,31 +22,7 @@ type RouteMapProps = {
     latitude: number
     longitude: number
   } | null
-}
-
-type RouteFeature = {
-  type: 'Feature'
-  properties: {
-    id: string
-    index: number
-  }
-  geometry: {
-    type: 'LineString'
-    coordinates: number[][]
-  }
-}
-
-type RiskFeature = {
-  type: 'Feature'
-  properties: {
-    routeId: string
-    level: RiskLevel
-    color: string
-  }
-  geometry: {
-    type: 'LineString'
-    coordinates: number[][]
-  }
+  corridorSamples?: ActiveCorridorSample[]
 }
 
 const routeColors = ['#AEE033', '#02AAB0', '#F59E0B']
@@ -64,42 +43,18 @@ const riskScores: Record<RiskLevel, number> = {
   'No Travel': 4,
 }
 
-const emptyRoutes = {
-  type: 'FeatureCollection' as const,
-  features: [] as RouteFeature[],
-}
-
-const emptyRisks = {
-  type: 'FeatureCollection' as const,
-  features: [] as RiskFeature[],
-}
-
-function createRouteData(result?: RouteResult | null) {
-  return {
-    type: 'FeatureCollection' as const,
-    features: (result?.routes ?? []).map((route, index) => ({
-      type: 'Feature' as const,
-      properties: {
-        id: route.id,
-        index,
-      },
-      geometry: route.geometry,
-    })),
-  }
-}
-
 function distanceMiles(a: number[], b: number[]) {
   const radians = Math.PI / 180
-  const latitudeA = a[1] * radians
-  const latitudeB = b[1] * radians
-  const latitudeDifference = (b[1] - a[1]) * radians
-  const longitudeDifference = (b[0] - a[0]) * radians
+  const latA = a[1] * radians
+  const latB = b[1] * radians
+  const latDifference = (b[1] - a[1]) * radians
+  const lonDifference = (b[0] - a[0]) * radians
 
   const value =
-    Math.sin(latitudeDifference / 2) ** 2 +
-    Math.cos(latitudeA) *
-      Math.cos(latitudeB) *
-      Math.sin(longitudeDifference / 2) ** 2
+    Math.sin(latDifference / 2) ** 2 +
+    Math.cos(latA) *
+      Math.cos(latB) *
+      Math.sin(lonDifference / 2) ** 2
 
   return (
     3958.7613 *
@@ -117,10 +72,7 @@ function routeDistances(coordinates: number[][]) {
   for (let index = 1; index < coordinates.length; index++) {
     distances.push(
       distances[index - 1] +
-        distanceMiles(
-          coordinates[index - 1],
-          coordinates[index]
-        )
+        distanceMiles(coordinates[index - 1], coordinates[index])
     )
   }
 
@@ -174,9 +126,7 @@ function segmentCoordinates(
   start: number,
   end: number
 ) {
-  const segment = [
-    pointAtDistance(coordinates, distances, start),
-  ]
+  const segment = [pointAtDistance(coordinates, distances, start)]
 
   for (let index = 1; index < coordinates.length - 1; index++) {
     if (distances[index] > start && distances[index] < end) {
@@ -185,11 +135,10 @@ function segmentCoordinates(
   }
 
   segment.push(pointAtDistance(coordinates, distances, end))
-
   return segment
 }
 
-function checkpointDistance(
+function checkpointFraction(
   route: RouteOption,
   index: number,
   count: number,
@@ -202,14 +151,36 @@ function checkpointDistance(
       ? route.distance_miles
       : Math.min(index * spacing, route.distance_miles)
 
-  return Math.max(
-    0,
-    Math.min(1, miles / route.distance_miles)
-  )
+  return Math.max(0, Math.min(1, miles / route.distance_miles))
+}
+
+function createRouteData(result?: RouteResult | null) {
+  return {
+    type: 'FeatureCollection' as const,
+    features: (result?.routes ?? []).map((route, index) => ({
+      type: 'Feature' as const,
+      properties: {
+        id: route.id,
+        index,
+      },
+      geometry: route.geometry,
+    })),
+  }
 }
 
 function createRiskData(result?: RouteResult | null) {
-  const features: RiskFeature[] = []
+  const features: Array<{
+    type: 'Feature'
+    properties: {
+      routeId: string
+      level: RiskLevel
+      color: string
+    }
+    geometry: {
+      type: 'LineString'
+      coordinates: number[][]
+    }
+  }> = []
 
   for (const route of result?.routes ?? []) {
     const analysis = route.weather_analysis
@@ -238,7 +209,7 @@ function createRiskData(result?: RouteResult | null) {
       const startDistance =
         (index === 0
           ? 0
-          : checkpointDistance(
+          : checkpointFraction(
               route,
               index,
               checkpoints.length,
@@ -248,7 +219,7 @@ function createRiskData(result?: RouteResult | null) {
       const endDistance =
         (index === checkpoints.length - 2
           ? 1
-          : checkpointDistance(
+          : checkpointFraction(
               route,
               index + 1,
               checkpoints.length,
@@ -301,9 +272,8 @@ function popupContent(checkpoint: WeatherCheckpoint) {
   title.style.color = riskColors[checkpoint.risk.level]
 
   const arrival = document.createElement('span')
-  arrival.textContent = `Arrival: ${new Date(
-    checkpoint.arrival_time
-  ).toLocaleString()}`
+  arrival.textContent =
+    `Arrival: ${new Date(checkpoint.arrival_time).toLocaleString()}`
 
   const wind = document.createElement('span')
   wind.textContent = `Wind gust: ${formatWeather(
@@ -327,7 +297,6 @@ function popupContent(checkpoint: WeatherCheckpoint) {
   reasons.textContent = checkpoint.risk.reasons.join(' ')
 
   element.append(title, arrival, wind, rain, snow, reasons)
-
   return element
 }
 
@@ -339,9 +308,7 @@ function timelinePopup(frame: WeatherTimelineFrame) {
   heading.textContent = 'Origin point forecast'
 
   const time = document.createElement('span')
-  time.textContent = new Date(
-    frame.forecast_time
-  ).toLocaleString()
+  time.textContent = new Date(frame.forecast_time).toLocaleString()
 
   const wind = document.createElement('span')
   wind.textContent = `Wind gusts: ${formatWeather(
@@ -366,7 +333,6 @@ function timelinePopup(frame: WeatherTimelineFrame) {
     'Open-Meteo point forecast, not corridor-wide conditions.'
 
   element.append(heading, time, wind, rain, snow, source)
-
   return element
 }
 
@@ -376,11 +342,13 @@ export function RouteMap({
   onSelectRoute,
   timelineFrame,
   timelineLocation,
+  corridorSamples = [],
 }: RouteMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const markersRef = useRef<maplibregl.Marker[]>([])
   const timelineMarkerRef = useRef<maplibregl.Marker | null>(null)
+  const corridorMarkersRef = useRef<maplibregl.Marker[]>([])
   const onSelectRef = useRef(onSelectRoute)
   const resultRef = useRef(result)
   const [mapReady, setMapReady] = useState(false)
@@ -445,7 +413,7 @@ export function RouteMap({
 
       map.addSource('journey-risks', {
         type: 'geojson',
-        data: emptyRisks,
+        data: createRiskData(resultRef.current),
       })
 
       for (let index = 0; index < 3; index++) {
@@ -565,10 +533,16 @@ export function RouteMap({
     return () => {
       observer.disconnect()
       map.off('load', handleLoad)
+
       timelineMarkerRef.current?.remove()
       timelineMarkerRef.current = null
+
+      corridorMarkersRef.current.forEach(marker => marker.remove())
+      corridorMarkersRef.current = []
+
       markersRef.current.forEach(marker => marker.remove())
       markersRef.current = []
+
       mapRef.current = null
       map.remove()
     }
@@ -586,10 +560,7 @@ export function RouteMap({
       'journey-risks'
     ) as maplibregl.GeoJSONSource | undefined
 
-    routesSource?.setData(
-      result ? createRouteData(result) : emptyRoutes
-    )
-
+    routesSource?.setData(createRouteData(result))
     risksSource?.setData(createRiskData(result))
 
     markersRef.current.forEach(marker => marker.remove())
@@ -662,9 +633,7 @@ export function RouteMap({
       selectedRouteId ?? result?.routes[0]?.id ?? null
 
     const selectedIndex =
-      result?.routes.findIndex(
-        route => route.id === activeId
-      ) ?? -1
+      result?.routes.findIndex(route => route.id === activeId) ?? -1
 
     for (let index = 0; index < 3; index++) {
       const lineId = `route-${index}-line`
@@ -731,10 +700,7 @@ export function RouteMap({
       return true
     })
 
-    const route = result?.routes.find(
-      item => item.id === activeId
-    )
-
+    const route = result?.routes.find(item => item.id === activeId)
     const analysis = route?.weather_analysis
 
     if (analysis?.status !== 'available') return
@@ -743,11 +709,14 @@ export function RouteMap({
       const element = document.createElement('button')
       element.type = 'button'
       element.className = 'weather-checkpoint-marker'
+
       element.style.setProperty(
         '--checkpoint-color',
         riskColors[checkpoint.risk.level]
       )
+
       element.title = `${checkpoint.risk.level} weather risk`
+
       element.setAttribute(
         'aria-label',
         `Weather checkpoint: ${checkpoint.risk.level} risk`
@@ -799,6 +768,7 @@ export function RouteMap({
     element.className = 'timeline-map-marker'
     element.textContent = 'FORECAST'
     element.title = 'View hourly forecast at route origin'
+
     element.setAttribute(
       'aria-label',
       'Hourly forecast at route origin'
@@ -825,6 +795,7 @@ export function RouteMap({
 
     return () => {
       marker.remove()
+
       if (timelineMarkerRef.current === marker) {
         timelineMarkerRef.current = null
       }
@@ -836,9 +807,32 @@ export function RouteMap({
     timelineLocation?.longitude,
   ])
 
+  useEffect(() => {
+    corridorMarkersRef.current.forEach(marker => marker.remove())
+    corridorMarkersRef.current = []
+
+    const map = mapRef.current
+
+    if (!map || !mapReady || corridorSamples.length === 0) {
+      return
+    }
+
+    const markers = addCorridorMarkers(map, corridorSamples)
+    corridorMarkersRef.current = markers
+
+    return () => {
+      markers.forEach(marker => marker.remove())
+
+      if (corridorMarkersRef.current === markers) {
+        corridorMarkersRef.current = []
+      }
+    }
+  }, [mapReady, corridorSamples])
+
   return (
     <div className="route-map">
       <div ref={containerRef} className="route-map-canvas" />
+    <CorridorLegend visible={corridorSamples.length > 0} />
     </div>
   )
 }

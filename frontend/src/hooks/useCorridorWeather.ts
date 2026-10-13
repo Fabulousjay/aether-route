@@ -1,6 +1,6 @@
-
 import { useEffect, useState } from 'react'
 import type { RouteOption } from '../services/api'
+import type { WeatherTimelineFrame } from '../services/weather'
 import {
   fetchCorridorWeather,
   type CorridorSample,
@@ -16,9 +16,40 @@ export type ActiveCorridorSample = Omit<CorridorSample, 'frames'> & {
   frame: CorridorSample['frames'][number] | null
 }
 
+function getForecastTimestamp(value: string) {
+  const timestamp = new Date(value).getTime()
+
+  return Number.isFinite(timestamp) ? timestamp : null
+}
+
+function findMatchingFrame(
+  frames: CorridorSample['frames'],
+  forecastTime: string | null
+) {
+  if (!forecastTime) {
+    return null
+  }
+
+  const targetTimestamp = getForecastTimestamp(forecastTime)
+
+  if (targetTimestamp === null) {
+    return null
+  }
+
+  return (
+    frames.find(frame => {
+      const frameTimestamp = getForecastTimestamp(
+        frame.forecast_time
+      )
+
+      return frameTimestamp === targetTimestamp
+    }) ?? null
+  )
+}
+
 export function useCorridorWeather(
   selection: CorridorSelection | null,
-  selectedHour: number
+  selectedFrame: WeatherTimelineFrame | null
 ) {
   const [corridor, setCorridor] = useState<CorridorWeather | null>(null)
   const [loading, setLoading] = useState(false)
@@ -54,7 +85,9 @@ export function useCorridorWeather(
           controller.signal
         )
 
-        if (active) setCorridor(data)
+        if (active) {
+          setCorridor(data)
+        }
       } catch (caught) {
         if (
           active &&
@@ -67,7 +100,9 @@ export function useCorridorWeather(
           )
         }
       } finally {
-        if (active) setLoading(false)
+        if (active) {
+          setLoading(false)
+        }
       }
     }
 
@@ -82,7 +117,10 @@ export function useCorridorWeather(
   const activeSamples: ActiveCorridorSample[] =
     corridor?.samples.map(({ frames, ...sample }) => ({
       ...sample,
-      frame: frames[selectedHour] ?? null,
+      frame: findMatchingFrame(
+        frames,
+        selectedFrame?.forecast_time ?? null
+      ),
     })) ?? []
 
   return {

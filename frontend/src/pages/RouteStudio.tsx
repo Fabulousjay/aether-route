@@ -1,8 +1,8 @@
-
 import { lazy, Suspense, useState, type FormEvent } from 'react'
 import {
   ArrowLeft,
   ArrowRight,
+  CheckCircle2,
   Clock3,
   CloudSun,
   Package,
@@ -17,10 +17,11 @@ import { LocationAutocomplete } from '../components/ui/LocationAutocomplete'
 import DeparturePicker from '../components/ui/DeparturePicker'
 import { useRoutes } from '../hooks/useRoutes'
 import { useWeatherTimeline } from '../hooks/useWeatherTimeline'
+import { useCorridorWeather } from '../hooks/useCorridorWeather'
 import WeatherTimeline from '../components/weather/WeatherTimeline'
+import type { RiskLevel, RouteOption, TripDetails } from '../services/api'
 import '../styles/weather-timeline.css'
 import '../styles/studio-timeline.css'
-import type { RiskLevel, RouteOption, TripDetails } from '../services/api'
 
 const RouteMap = lazy(() =>
   import('../components/map/RouteMap').then(module => ({
@@ -81,6 +82,15 @@ function WeatherDetails({ route }: { route: RouteOption }) {
 
   if (!summary || !miles) return null
 
+  const severeMiles = miles.Severe
+  const noTravelMiles = miles['No Travel']
+  const hasSevereExposure = severeMiles > 0
+  const hasNoTravelExposure = noTravelMiles > 0
+  const hasCriticalExposure =
+    hasSevereExposure ||
+    hasNoTravelExposure ||
+    summary.has_no_travel
+
   return (
     <section
       className="weather-details"
@@ -106,11 +116,11 @@ function WeatherDetails({ route }: { route: RouteOption }) {
         </div>
         <div>
           <span>Severe miles</span>
-          <strong>{miles.Severe.toFixed(1)}</strong>
+          <strong>{severeMiles.toFixed(1)}</strong>
         </div>
         <div>
           <span>No Travel miles</span>
-          <strong>{miles['No Travel'].toFixed(1)}</strong>
+          <strong>{noTravelMiles.toFixed(1)}</strong>
         </div>
       </div>
 
@@ -141,6 +151,59 @@ function WeatherDetails({ route }: { route: RouteOption }) {
         <span>Estimated exposure</span>
       </div>
 
+      {!hasCriticalExposure && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '9px',
+            marginTop: '14px',
+            padding: '11px 12px',
+            border: '1px solid #315759',
+            borderRadius: '8px',
+            background: '#123236',
+          }}
+        >
+          <CheckCircle2
+            size={16}
+            color="#AEE033"
+            style={{ flexShrink: 0, marginTop: '1px' }}
+          />
+          <div>
+            <strong
+              style={{
+                display: 'block',
+                color: '#D9E9E5',
+                fontSize: '11px',
+                lineHeight: 1.5,
+              }}
+            >
+              No severe or No Travel exposure detected
+            </strong>
+            <p
+              style={{
+                margin: '5px 0 0',
+                color: '#91B3AC',
+                fontSize: '11px',
+                lineHeight: 1.6,
+              }}
+            >
+              The current route analysis did not classify any
+              mileage at these risk levels. This is a forecast
+              estimate, not a guarantee of safe travel.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {hasSevereExposure && (
+        <p className="weather-warning">
+          Severe weather risk was estimated along{' '}
+          {severeMiles.toFixed(1)} miles of this route.
+          Review the affected checkpoints before departure.
+        </p>
+      )}
+
       {summary.has_no_travel && (
         <p className="weather-warning">
           A No Travel threshold was detected. Do not treat
@@ -148,9 +211,19 @@ function WeatherDetails({ route }: { route: RouteOption }) {
         </p>
       )}
 
+      {!summary.has_no_travel && hasNoTravelExposure && (
+        <p className="weather-warning">
+          No Travel risk was estimated along{' '}
+          {noTravelMiles.toFixed(1)} miles of this route.
+          Review the affected segments before departure.
+        </p>
+      )}
+
       <p className="weather-method-note">
-        Forecast risk is estimated at checkpoint arrival times.
+        Freight risk is estimated at checkpoint arrival times.
         Segment colors use the higher risk at adjacent checkpoints.
+        The numbered map markers show hourly weather intensity
+        separately and may change as you move the timeline.
       </p>
     </section>
   )
@@ -158,8 +231,12 @@ function WeatherDetails({ route }: { route: RouteOption }) {
 
 export function RouteStudio() {
   const [trip, setTrip] = useState<TripDetails>(initialTrip)
-  const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
-  const [validationError, setValidationError] = useState<string | null>(null)
+  const [selectedRouteId, setSelectedRouteId] = useState<string | null>(
+    null
+  )
+  const [validationError, setValidationError] = useState<string | null>(
+    null
+  )
 
   const {
     result,
@@ -174,6 +251,7 @@ export function RouteStudio() {
       ...current,
       [field]: value,
     }))
+
     setValidationError(null)
     setSelectedRouteId(null)
     clearRoutes()
@@ -241,6 +319,20 @@ export function RouteStudio() {
     error: timelineError,
   } = useWeatherTimeline(timelineLocation)
 
+  const corridorSelection =
+    selectedRoute && result
+      ? {
+          route: selectedRoute,
+          startTime: result.journey.departure,
+        }
+      : null
+
+  const {
+    activeSamples: corridorSamples,
+    loading: corridorLoading,
+    error: corridorError,
+  } = useCorridorWeather(corridorSelection, selectedFrame)
+
   const recommendedId = result?.recommendation?.route_id
 
   return (
@@ -297,7 +389,9 @@ export function RouteStudio() {
                 step="1"
                 placeholder="e.g. 30000"
                 value={trip.weight}
-                onChange={event => update('weight', event.target.value)}
+                onChange={event =>
+                  update('weight', event.target.value)
+                }
               />
             </div>
           </label>
@@ -308,7 +402,9 @@ export function RouteStudio() {
               <SlidersHorizontal size={17} />
               <select
                 value={trip.interval}
-                onChange={event => update('interval', event.target.value)}
+                onChange={event =>
+                  update('interval', event.target.value)
+                }
               >
                 <option value="10">Every 10 miles</option>
                 <option value="25">Every 25 miles</option>
@@ -352,7 +448,9 @@ export function RouteStudio() {
                 <button
                   key={route.id}
                   type="button"
-                  className={`route-option ${active ? 'is-active' : ''}`}
+                  className={`route-option ${
+                    active ? 'is-active' : ''
+                  }`}
                   onClick={() => setSelectedRouteId(route.id)}
                 >
                   <span
@@ -400,7 +498,9 @@ export function RouteStudio() {
               )
             })}
 
-            {selectedRoute && <WeatherDetails route={selectedRoute} />}
+            {selectedRoute && (
+              <WeatherDetails route={selectedRoute} />
+            )}
 
             {result.route_count < 3 && (
               <p className="route-results-note">
@@ -433,7 +533,9 @@ export function RouteStudio() {
 
       <main className="map-stage">
         <Suspense
-          fallback={<div className="map-loading">Loading map...</div>}
+          fallback={
+            <div className="map-loading">Loading map...</div>
+          }
         >
           <RouteMap
             result={result}
@@ -442,6 +544,7 @@ export function RouteStudio() {
             }
             onSelectRoute={setSelectedRouteId}
             timelineFrame={selectedFrame}
+            corridorSamples={corridorSamples}
             timelineLocation={
               timeline
                 ? {
@@ -465,11 +568,67 @@ export function RouteStudio() {
           </div>
         )}
 
+        {result && (corridorLoading || corridorError) && (
+          <div
+            role={corridorError ? 'alert' : 'status'}
+            aria-live="polite"
+            style={{
+              position: 'absolute',
+              top: '78px',
+              right: '20px',
+              zIndex: 5,
+              maxWidth: '270px',
+              padding: '10px 13px',
+              border: corridorError
+                ? '1px solid #EF444480'
+                : '1px solid #315759',
+              borderRadius: '10px',
+              background: '#092B2B',
+              color: corridorError ? '#FECACA' : '#F4F9F7',
+              fontSize: '12px',
+              lineHeight: 1.6,
+              boxShadow: '0 6px 24px #00000025',
+            }}
+          >
+            {corridorLoading
+              ? 'Loading corridor weather forecasts...'
+              : `Corridor forecasts unavailable: ${corridorError}`}
+          </div>
+        )}
+
+        {result &&
+          !corridorLoading &&
+          !corridorError &&
+          corridorSamples.length > 0 &&
+          corridorSamples.every(sample => sample.frame === null) && (
+            <div
+              role="status"
+              style={{
+                position: 'absolute',
+                top: '78px',
+                right: '20px',
+                zIndex: 5,
+                maxWidth: '270px',
+                padding: '10px 13px',
+                border: '1px solid #315759',
+                borderRadius: '10px',
+                background: '#092B2B',
+                color: '#D9E9E5',
+                fontSize: '12px',
+                lineHeight: 1.6,
+              }}
+            >
+              No corridor forecast is available for the selected
+              hour.
+            </div>
+          )}
+
         <div className="map-toolbar">
           <span>
             <span className="live-dot" />
             ROUTE EXPLORER
           </span>
+
           <span className="map-status">
             <Clock3 size={15} />
             {loading
@@ -489,6 +648,7 @@ export function RouteStudio() {
             <div className="map-guide-icon">
               <Route size={20} />
             </div>
+
             <div>
               <span className="eyebrow">YOUR JOURNEY</span>
               <h2>Explore the terrain.</h2>
@@ -504,6 +664,7 @@ export function RouteStudio() {
           <div className="map-route-summary weather-map-summary">
             <span className="eyebrow">SELECTED ROUTE</span>
             <h2>{selectedRoute.name}</h2>
+
             <p>
               {selectedRoute.distance_miles.toLocaleString()}
               {' miles · '}
@@ -514,6 +675,7 @@ export function RouteStudio() {
             {selectedRoute.weather_analysis?.summary && (
               <div className="weather-map-summary-risk">
                 <ShieldCheck size={16} />
+
                 <strong
                   style={{
                     color:
@@ -523,11 +685,18 @@ export function RouteStudio() {
                       ],
                   }}
                 >
-                  {selectedRoute.weather_analysis.summary.overall_level}{' '}
+                  {
+                    selectedRoute.weather_analysis.summary
+                      .overall_level
+                  }{' '}
                   risk
                 </strong>
+
                 <span>
-                  {selectedRoute.weather_analysis.checkpoint_count}{' '}
+                  {
+                    selectedRoute.weather_analysis
+                      .checkpoint_count
+                  }{' '}
                   checkpoints
                 </span>
               </div>
@@ -535,13 +704,16 @@ export function RouteStudio() {
 
             {selectedRoute.weather_analysis?.status ===
               'unavailable' && (
-              <p>Weather forecast unavailable for this route.</p>
+              <p>
+                Weather forecast unavailable for this route.
+              </p>
             )}
           </div>
         )}
 
         {result &&
-          selectedRoute?.weather_analysis?.status === 'available' && (
+          selectedRoute?.weather_analysis?.status ===
+            'available' && (
             <div
               className="weather-map-legend"
               aria-label="Weather risk map legend"

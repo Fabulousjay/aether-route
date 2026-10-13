@@ -1,0 +1,75 @@
+.corridor-legend {
+  position: absolute;
+  right: 14px;
+  bottom: 118px;
+  z-index: 5;
+  width: 222px;
+  padding: 13px 14px;
+  border: 1px solid #315759;
+  border-radius: 10px;
+  background: #092629;
+  color: #eaf5f1;
+  box-shadow: 0 8px 28px #00000030;
+  pointer-events: none;
+}
+
+.corridor-legend-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 11px;
+  color: #aee033;
+  font-size: 10px;
+  letter-spacing: 0.07em;
+}
+
+.corridor-legend-symbol {
+  font-size: 14px;
+}
+
+.corridor-legend-items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+}
+
+.corridor-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.corridor-legend-dot {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.corridor-legend p {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid #315759;
+  color: #91b3ac;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .corridor-legend {
+    right: 10px;
+    bottom: 125px;
+    width: 190px;
+    padding: 10px;
+  }
+
+  .corridor-legend-items {
+    gap: 7px;
+  }
+
+  .corridor-legend-item {
+    font-size: 10px;
+  }
+}
