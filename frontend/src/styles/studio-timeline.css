@@ -1,0 +1,47 @@
+
+.studio-weather-timeline {
+  position: absolute;
+  left: 20px;
+  bottom: 22px;
+  z-index: 5;
+  width: min(380px, calc(100% - 40px));
+  max-height: min(520px, calc(100% - 105px));
+  overflow-y: auto;
+  border: 1px solid rgba(174, 224, 51, 0.2);
+  border-radius: 14px;
+  background: rgba(8, 35, 35, 0.96);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(14px);
+}
+
+.studio-weather-timeline .weather-timeline {
+  padding: 16px;
+}
+
+.timeline-map-marker {
+  border: 1px solid #aee033;
+  border-radius: 999px;
+  background: #092b2b;
+  color: #aee033;
+  padding: 6px 9px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+}
+
+.timeline-map-marker:hover,
+.timeline-map-marker:focus-visible {
+  outline: 2px solid #aee033;
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  .studio-weather-timeline {
+    left: 12px;
+    bottom: 60px;
+    width: min(340px, calc(100% - 24px));
+    max-height: 40%;
+  }
+}

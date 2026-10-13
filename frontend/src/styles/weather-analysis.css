@@ -1,0 +1,240 @@
+
+.weather-details {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid rgba(174, 224, 51, 0.18);
+  border-radius: 16px;
+  background: rgba(6, 32, 32, 0.65);
+}
+
+.weather-details-header,
+.weather-exposure-labels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.weather-risk-badge {
+  padding: 5px 10px;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.weather-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.weather-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.weather-stats span,
+.weather-exposure-labels,
+.weather-method-note {
+  color: #9aafac;
+  font-size: 11px;
+}
+
+.weather-stats strong {
+  color: #f1f8f3;
+  font-size: 18px;
+}
+
+.weather-exposure-track {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.weather-exposure-track > div {
+  height: 100%;
+  min-width: 0;
+}
+
+.weather-warning {
+  padding: 11px 12px;
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  border-radius: 9px;
+  background: rgba(168, 85, 247, 0.12);
+  color: #e9d5ff;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.weather-method-note {
+  line-height: 1.6;
+}
+
+.weather-unavailable {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #d6e1de;
+}
+
+.weather-unavailable strong {
+  font-size: 12px;
+}
+
+.weather-unavailable p {
+  margin: 6px 0 0;
+  color: #9aafac;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.route-recommended {
+  display: inline-block;
+  margin-left: 8px;
+  color: #aee033;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.route-risk-label {
+  display: block;
+  margin-top: 5px;
+  font-weight: 700;
+}
+
+.weather-map-summary-risk {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 12px;
+}
+
+.weather-map-summary-risk span {
+  color: #9aafac;
+}
+
+.weather-map-legend {
+  position: absolute;
+  z-index: 5;
+  right: 20px;
+  bottom: 105px;
+  max-width: 270px;
+  padding: 14px;
+  border: 1px solid rgba(174, 224, 51, 0.15);
+  border-radius: 13px;
+  background: rgba(6, 30, 30, 0.94);
+  color: #eaf3ef;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+.weather-map-legend-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 12px;
+  color: #aee033;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.1px;
+}
+
+.weather-map-legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 13px;
+}
+
+.weather-map-legend-items span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+}
+
+.weather-map-legend-items i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.weather-checkpoint-marker {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 3px solid #092b2b;
+  border-radius: 50%;
+  background: var(--checkpoint-color);
+  box-shadow: 0 0 0 2px var(--checkpoint-color);
+  cursor: pointer;
+  transition: transform 160ms ease;
+}
+
+.weather-checkpoint-marker:hover,
+.weather-checkpoint-marker:focus-visible {
+  transform: scale(1.35);
+}
+
+.weather-map-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 190px;
+  padding: 4px;
+  color: #123333;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.weather-map-popup strong {
+  font-size: 15px;
+}
+
+.weather-map-popup small {
+  margin-top: 4px;
+  color: #536866;
+  line-height: 1.5;
+}
+
+.maplibregl-popup-content {
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+@media (max-width: 900px) {
+  .weather-map-legend {
+    right: 12px;
+    bottom: 125px;
+    max-width: 220px;
+  }
+}
+
+@media (max-width: 600px) {
+  .weather-stats strong {
+    font-size: 15px;
+  }
+
+  .weather-map-legend {
+    right: 10px;
+    bottom: 105px;
+    max-width: 180px;
+    padding: 11px;
+  }
+
+  .weather-map-legend-items {
+    gap: 7px;
+  }
+}

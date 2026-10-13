@@ -1,0 +1,155 @@
+
+.location-field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.location-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 60px;
+  min-height: 60px;
+  padding: 0 18px;
+  margin: 0;
+  box-sizing: border-box;
+  border: 1px solid rgba(174, 224, 51, 0.15);
+  border-radius: 11px;
+  background: #123638;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.location-input-wrap:focus-within {
+  border-color: #aee033;
+  box-shadow: 0 0 0 3px rgba(174, 224, 51, 0.08);
+}
+
+.location-input-wrap > svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: #9cb8b6;
+}
+
+.location-input-wrap input {
+  display: block;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #f1f8f3;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: normal;
+}
+
+.location-input-wrap input::placeholder {
+  color: #91b2b0;
+  opacity: 1;
+}
+
+.location-loading {
+  flex-shrink: 0;
+  animation: location-spin 900ms linear infinite;
+}
+
+@keyframes location-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.location-suggestions {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  max-height: 275px;
+  overflow-y: auto;
+  border: 1px solid #315759;
+  border-radius: 10px;
+  background: #102e30;
+  box-shadow: 0 18px 45px #0007;
+}
+
+.location-suggestion {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-bottom: 1px solid #ffffff0c;
+  background: transparent;
+  color: #eaf5f1;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+}
+
+.location-suggestion svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #aee033;
+}
+
+.location-suggestion:hover,
+.location-suggestion.is-highlighted {
+  background: #1b4543;
+}
+
+.location-attribution {
+  padding: 9px 12px;
+  color: #91b3ac;
+  font-size: 10px;
+}
+
+.studio-v2 .location-field {
+  position: relative;
+  gap: 8px;
+  min-width: 0;
+}
+
+.studio-v2 .location-field .location-input-wrap {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 60px;
+  min-height: 60px;
+  max-height: 60px;
+  padding: 0 18px;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.studio-v2 .location-field .location-input-wrap input {
+  display: block;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-sizing: border-box;
+}

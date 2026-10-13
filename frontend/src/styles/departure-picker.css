@@ -1,0 +1,381 @@
+
+.departure-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+}
+
+.departure-label {
+  color: #d9e9e5;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.departure-trigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 47px;
+  padding: 0 13px;
+  border: 1px solid #315759;
+  border-radius: 8px;
+  background: #123236;
+  color: #90b5ae;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 180ms ease, background 180ms ease;
+}
+
+.departure-trigger:hover,
+.departure-trigger:focus-visible,
+.departure-trigger[aria-expanded='true'] {
+  border-color: #aee033;
+  outline: none;
+}
+
+.departure-trigger > span {
+  flex: 1;
+  min-width: 0;
+  color: #eaf5f1;
+  font-size: 13px;
+}
+
+.departure-trigger-icon {
+  flex-shrink: 0;
+  color: #d9e9e5;
+}
+
+body > .departure-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  margin: 0 !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  background: rgba(2, 16, 18, 0.78) !important;
+  backdrop-filter: blur(6px);
+}
+
+body > .departure-overlay > .departure-popover {
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  display: block !important;
+  flex: 0 0 auto !important;
+  width: min(360px, 100%) !important;
+  max-width: 360px !important;
+  max-height: calc(100dvh - 40px) !important;
+  min-height: 0 !important;
+  margin: auto !important;
+  padding: 18px !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border: 1px solid #426864 !important;
+  border-radius: 16px !important;
+  background: #0e2a2c !important;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.65) !important;
+  color: #eaf5f1 !important;
+  scrollbar-width: thin;
+  scrollbar-color: #426864 transparent;
+}
+
+body > .departure-overlay .departure-popover *,
+body > .departure-overlay .departure-popover *::before,
+body > .departure-overlay .departure-popover *::after {
+  box-sizing: border-box;
+}
+
+body > .departure-overlay .departure-popover-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #315759;
+}
+
+body > .departure-overlay .departure-popover-heading strong {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+body > .departure-overlay .departure-popover-heading p {
+  margin: 4px 0 0;
+  color: #91b3ac;
+  font-size: 11px;
+}
+
+body > .departure-overlay .departure-close {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border: 1px solid #315759;
+  border-radius: 8px;
+  background: #17383a;
+  color: #aee033;
+  cursor: pointer;
+}
+
+body > .departure-overlay .departure-close:hover {
+  border-color: #aee033;
+}
+
+body > .departure-overlay .departure-month-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0 8px;
+}
+
+body > .departure-overlay .departure-month-header strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+body > .departure-overlay .departure-month-header button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border: 1px solid #315759;
+  border-radius: 7px;
+  background: #17383a;
+  color: #eaf5f1;
+  cursor: pointer;
+}
+
+body > .departure-overlay .departure-month-header button:hover {
+  border-color: #aee033;
+}
+
+body > .departure-overlay .departure-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+  width: 100%;
+}
+
+body > .departure-overlay .departure-weekday {
+  display: grid;
+  place-items: center;
+  height: 22px;
+  color: #91b3ac;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+body > .departure-overlay .departure-calendar button {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 31px;
+  min-height: 31px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #eaf5f1;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+}
+
+body > .departure-overlay .departure-calendar button:hover {
+  background: #24494a;
+}
+
+body > .departure-overlay .departure-calendar button.is-selected {
+  background: #aee033;
+  color: #10261d;
+  font-weight: 800;
+}
+
+body > .departure-overlay .departure-time-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #315759;
+}
+
+body > .departure-overlay .departure-time-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+body > .departure-overlay .departure-time-title svg {
+  color: #aee033;
+}
+
+body > .departure-overlay .departure-time-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 8px minmax(0, 1fr);
+  align-items: end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+body > .departure-overlay .departure-time-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  margin: 0;
+}
+
+body > .departure-overlay .departure-time-controls label span {
+  color: #91b3ac;
+  font-size: 10px;
+}
+
+body > .departure-overlay .departure-time-controls select {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid #315759;
+  border-radius: 7px;
+  background: #17383a;
+  color: #eaf5f1;
+  font-size: 12px;
+  color-scheme: dark;
+}
+
+body > .departure-overlay .departure-time-separator {
+  padding-bottom: 9px;
+  color: #aee033;
+  font-weight: 700;
+  text-align: center;
+}
+
+body > .departure-overlay .departure-preview {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #17383a;
+  color: #b8ef64;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+body > .departure-overlay .departure-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+body > .departure-overlay .departure-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  min-height: 38px;
+  margin: 0;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+body > .departure-overlay .departure-cancel {
+  border: 1px solid #426864;
+  background: #17383a;
+  color: #d9e9e5;
+}
+
+body > .departure-overlay .departure-cancel:hover {
+  background: #24494a;
+}
+
+body > .departure-overlay .departure-confirm {
+  border: 1px solid #aee033;
+  background: #aee033;
+  color: #10261d;
+}
+
+body > .departure-overlay .departure-confirm:hover {
+  background: #c3f05f;
+}
+
+body > .departure-overlay button:focus-visible,
+body > .departure-overlay select:focus-visible {
+  outline: 2px solid #aee033;
+  outline-offset: 2px;
+}
+
+@media (max-height: 650px) {
+  body > .departure-overlay {
+    padding: 10px !important;
+  }
+
+  body > .departure-overlay > .departure-popover {
+    max-height: calc(100dvh - 20px) !important;
+    padding: 12px !important;
+  }
+
+  body > .departure-overlay .departure-calendar button {
+    height: 26px;
+    min-height: 26px;
+  }
+
+  body > .departure-overlay .departure-weekday {
+    height: 18px;
+  }
+
+  body > .departure-overlay .departure-month-header {
+    margin: 7px 0 5px;
+  }
+
+  body > .departure-overlay .departure-time-section {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+}
+
+@media (max-width: 400px) {
+  body > .departure-overlay {
+    padding: 10px !important;
+  }
+
+  body > .departure-overlay > .departure-popover {
+    width: 100% !important;
+    max-height: calc(100dvh - 20px) !important;
+    padding: 13px !important;
+  }
+}

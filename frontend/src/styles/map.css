@@ -1,0 +1,193 @@
+.map-stage {
+position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #d8eef6;
+}
+
+.map-toolbar {
+position: absolute;
+  z-index: 3;
+  top: 22px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 17px;
+  border: 1px solid #315759;
+  border-radius: 8px;
+  background: #092629ed;
+  color: var(--white);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
+.map-toolbar > span {
+display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.map-status {
+color: var(--muted);
+}
+
+.route-map,
+.route-map-canvas {
+position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.route-map {
+z-index: 0;
+}
+
+.map-guide {
+position: absolute;
+  z-index: 2;
+  top: 88px;
+  left: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  width: min(340px, calc(100% - 48px));
+  padding: 18px;
+  border: 1px solid #315759;
+  border-radius: 9px;
+  background: #092629f2;
+  box-shadow: 0 12px 35px #0003;
+  pointer-events: none;
+}
+
+.map-guide-icon {
+color: var(--mint);
+}
+
+.map-guide h2 {
+margin: 7px 0;
+  font: 500 19px "Space Grotesk", sans-serif;
+}
+
+.map-guide p {
+margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 850px) {
+.studio-v2 .map-stage {
+height: 65vh;
+    min-height: 460px;
+}
+}
+
+@media (max-width: 520px) {
+.studio-v2 .map-toolbar {
+left: 12px;
+    right: 12px;
+    top: 12px;
+}
+}
+
+@media (max-width: 520px) {
+.studio-v2 .map-status {
+display: none;
+}
+}
+
+@media (max-width: 520px) {
+.map-guide {
+top: 75px;
+    left: 12px;
+}
+}
+
+@media (min-width: 851px) {
+.studio-v2 .map-stage {
+height: 100%;
+    min-height: 0;
+}
+}
+
+.map-route-summary {
+position: absolute;
+  z-index: 2;
+  top: 88px;
+  left: 24px;
+  width: min(310px, calc(100% - 48px));
+  padding: 19px;
+  border: 1px solid #315759;
+  border-radius: 9px;
+  background: #092629f2;
+  box-shadow: 0 12px 35px #0003;
+  pointer-events: none;
+}
+
+.map-route-summary h2 {
+margin: 10px 0 7px;
+  color: #eaf5f1;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 22px;
+}
+
+.map-route-summary p {
+margin: 0;
+  color: #a6c2bc;
+  font-size: 12px;
+}
+
+.map-loading {
+display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: #d8eef6;
+  color: #02403d;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 520px) {
+.map-route-summary {
+top: 75px;
+    left: 12px;
+}
+}
+
+.route-map {
+position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.route-map-canvas {
+position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.route-map .maplibregl-canvas {
+outline: none;
+}
+
+.route-map .maplibregl-ctrl-bottom-right {
+right: 16px;
+  bottom: 16px;
+}
+
+.route-map .maplibregl-ctrl-bottom-left {
+left: 12px;
+  bottom: 12px;
+}

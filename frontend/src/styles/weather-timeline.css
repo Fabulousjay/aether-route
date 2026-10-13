@@ -1,0 +1,124 @@
+
+.weather-timeline {
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  background: rgba(9, 30, 32, 0.94);
+  color: #f3faf5;
+}
+
+.weather-timeline__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.weather-timeline__heading h3 {
+  margin: 5px 0 0;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.weather-timeline__heading > svg {
+  color: #c4f46d;
+}
+
+.weather-timeline__eyebrow {
+  color: #c4f46d;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+}
+
+.weather-timeline__message {
+  margin: 20px 0 0;
+  color: #a8bab6;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.weather-timeline__error {
+  color: #ff9c91;
+}
+
+.weather-timeline__time {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.weather-timeline__time strong {
+  font-size: 16px;
+}
+
+.weather-timeline__time span {
+  color: #a8bab6;
+  font-size: 12px;
+}
+
+.weather-timeline__slider {
+  display: block;
+  width: 100%;
+  margin: 25px 0 12px;
+  accent-color: #c4f46d;
+  cursor: pointer;
+}
+
+.weather-timeline__ticks {
+  display: flex;
+  justify-content: space-between;
+  color: #8fa6a0;
+  font-size: 11px;
+}
+
+.weather-timeline__readings {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.weather-timeline__readings > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.weather-timeline__readings svg {
+  color: #c4f46d;
+}
+
+.weather-timeline__readings span {
+  color: #a8bab6;
+  font-size: 11px;
+}
+
+.weather-timeline__readings strong {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.weather-timeline__source {
+  margin: 18px 0 0;
+  color: #8fa6a0;
+  font-size: 11px;
+}
+
+@media (max-width: 520px) {
+  .weather-timeline {
+    padding: 17px;
+  }
+
+  .weather-timeline__readings {
+    grid-template-columns: 1fr;
+  }
+}

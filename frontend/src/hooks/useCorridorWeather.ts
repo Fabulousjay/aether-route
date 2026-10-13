@@ -1,0 +1,94 @@
+
+import { useEffect, useState } from 'react'
+import type { RouteOption } from '../services/api'
+import {
+  fetchCorridorWeather,
+  type CorridorSample,
+  type CorridorWeather,
+} from '../services/corridor'
+
+type CorridorSelection = {
+  route: RouteOption
+  startTime: string
+}
+
+export type ActiveCorridorSample = Omit<CorridorSample, 'frames'> & {
+  frame: CorridorSample['frames'][number] | null
+}
+
+export function useCorridorWeather(
+  selection: CorridorSelection | null,
+  selectedHour: number
+) {
+  const [corridor, setCorridor] = useState<CorridorWeather | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const route = selection?.route
+  const startTime = selection?.startTime
+
+  useEffect(() => {
+    if (!route || !startTime) {
+      setCorridor(null)
+      setLoading(false)
+      setError(null)
+      return
+    }
+
+    const controller = new AbortController()
+    let active = true
+
+    setCorridor(null)
+    setLoading(true)
+    setError(null)
+
+    async function load() {
+      try {
+        const data = await fetchCorridorWeather(
+          {
+            geometry: route!.geometry,
+            start_time: startTime!,
+            hours: 48,
+            sample_count: 7,
+          },
+          controller.signal
+        )
+
+        if (active) setCorridor(data)
+      } catch (caught) {
+        if (
+          active &&
+          !(caught instanceof Error && caught.name === 'AbortError')
+        ) {
+          setError(
+            caught instanceof Error
+              ? caught.message
+              : 'Unable to load corridor forecasts.'
+          )
+        }
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    void load()
+
+    return () => {
+      active = false
+      controller.abort()
+    }
+  }, [route, startTime])
+
+  const activeSamples: ActiveCorridorSample[] =
+    corridor?.samples.map(({ frames, ...sample }) => ({
+      ...sample,
+      frame: frames[selectedHour] ?? null,
+    })) ?? []
+
+  return {
+    corridor,
+    activeSamples,
+    loading,
+    error,
+  }
+}
