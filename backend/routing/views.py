@@ -20,7 +20,7 @@ from .services.weather import (
 )
 
 
-MAX_WEATHER_CHECKPOINTS = 60
+MAX_WEATHER_CHECKPOINTS = 250
 
 
 def weather_error_response(error):
@@ -28,6 +28,7 @@ def weather_error_response(error):
 
     provider_errors = (
         "Unable to retrieve weather forecast",
+        "Unable to retrieve checkpoint weather forecasts",
         "Weather provider returned",
         "Weather forecast",
         "available forecast window",
@@ -170,8 +171,8 @@ def analyze_route(route, departure, interval, weight):
     if len(checkpoints) > MAX_WEATHER_CHECKPOINTS:
         return unavailable_analysis(
             (
-                "This route has too many checkpoints for the current "
-                "weather request limit. Choose a larger checkpoint interval."
+                "This journey exceeds the supported weather analysis "
+                "limit. Choose a larger checkpoint interval."
             ),
             len(checkpoints),
         )

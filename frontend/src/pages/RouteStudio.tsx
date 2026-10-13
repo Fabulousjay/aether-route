@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   Clock3,
   CloudSun,
+  LoaderCircle,
   Package,
   Route,
   ShieldCheck,
@@ -304,10 +305,10 @@ export function RouteStudio() {
 
   const timelineLocation = result
     ? {
-        latitude: result.origin.latitude,
-        longitude: result.origin.longitude,
-        startTime: result.journey.departure,
-      }
+      latitude: result.origin.latitude,
+      longitude: result.origin.longitude,
+      startTime: result.journey.departure,
+    }
     : null
 
   const {
@@ -322,9 +323,9 @@ export function RouteStudio() {
   const corridorSelection =
     selectedRoute && result
       ? {
-          route: selectedRoute,
-          startTime: result.journey.departure,
-        }
+        route: selectedRoute,
+        startTime: result.journey.departure,
+      }
       : null
 
   const {
@@ -417,9 +418,23 @@ export function RouteStudio() {
             className="button-primary studio-submit"
             type="submit"
             disabled={loading}
+            aria-busy={loading}
           >
-            {loading ? 'Analyzing weather...' : 'Analyze journey'}
-            <ArrowRight size={17} />
+            {loading ? (
+              <>
+                <LoaderCircle
+                  size={17}
+                  className="analyze-spinner"
+                  aria-hidden="true"
+                />
+                <span>Analyzing journey...</span>
+              </>
+            ) : (
+              <>
+                <span>Analyze journey</span>
+                <ArrowRight size={17} />
+              </>
+            )}
           </button>
         </form>
 
@@ -448,9 +463,8 @@ export function RouteStudio() {
                 <button
                   key={route.id}
                   type="button"
-                  className={`route-option ${
-                    active ? 'is-active' : ''
-                  }`}
+                  className={`route-option ${active ? 'is-active' : ''
+                    }`}
                   onClick={() => setSelectedRouteId(route.id)}
                 >
                   <span
@@ -548,9 +562,9 @@ export function RouteStudio() {
             timelineLocation={
               timeline
                 ? {
-                    latitude: timeline.latitude,
-                    longitude: timeline.longitude,
-                  }
+                  latitude: timeline.latitude,
+                  longitude: timeline.longitude,
+                }
                 : null
             }
           />
@@ -634,11 +648,10 @@ export function RouteStudio() {
             {loading
               ? 'Analyzing routes and forecasts'
               : result
-                ? `${result.route_count} ${
-                    result.route_count === 1
-                      ? 'route found'
-                      : 'routes found'
-                  }`
+                ? `${result.route_count} ${result.route_count === 1
+                  ? 'route found'
+                  : 'routes found'
+                }`
                 : 'Live map / Route analysis pending'}
           </span>
         </div>
@@ -680,8 +693,8 @@ export function RouteStudio() {
                   style={{
                     color:
                       riskColors[
-                        selectedRoute.weather_analysis.summary
-                          .overall_level
+                      selectedRoute.weather_analysis.summary
+                        .overall_level
                       ],
                   }}
                 >
@@ -704,16 +717,16 @@ export function RouteStudio() {
 
             {selectedRoute.weather_analysis?.status ===
               'unavailable' && (
-              <p>
-                Weather forecast unavailable for this route.
-              </p>
-            )}
+                <p>
+                  Weather forecast unavailable for this route.
+                </p>
+              )}
           </div>
         )}
 
         {result &&
           selectedRoute?.weather_analysis?.status ===
-            'available' && (
+          'available' && (
             <div
               className="weather-map-legend"
               aria-label="Weather risk map legend"

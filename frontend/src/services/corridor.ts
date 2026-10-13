@@ -1,4 +1,3 @@
-
 import type { RouteOption, WeatherReading } from './api'
 
 export type WeatherIntensity =
@@ -50,6 +49,34 @@ export type CorridorRequest = {
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
 
+const MAX_CORRIDOR_POINTS = 5000
+
+function simplifyCorridorGeometry(
+  geometry: RouteOption['geometry']
+): RouteOption['geometry'] {
+  const coordinates = geometry.coordinates
+
+  if (coordinates.length <= MAX_CORRIDOR_POINTS) {
+    return geometry
+  }
+
+  const simplified: number[][] = []
+
+  for (let index = 0; index < MAX_CORRIDOR_POINTS; index++) {
+    const originalIndex = Math.round(
+      (index * (coordinates.length - 1)) /
+      (MAX_CORRIDOR_POINTS - 1)
+    )
+
+    simplified.push(coordinates[originalIndex])
+  }
+
+  return {
+    type: 'LineString',
+    coordinates: simplified,
+  }
+}
+
 export async function fetchCorridorWeather(
   request: CorridorRequest,
   signal?: AbortSignal
@@ -59,9 +86,11 @@ export async function fetchCorridorWeather(
   try {
     response = await fetch(`${API_BASE_URL}/api/weather/corridor/`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
-        geometry: request.geometry,
+        geometry: simplifyCorridorGeometry(request.geometry),
         start_time: request.start_time,
         hours: request.hours ?? 48,
         sample_count: request.sample_count ?? 7,
@@ -74,7 +103,7 @@ export async function fetchCorridorWeather(
     }
 
     throw new Error(
-      'Cannot reach the weather server. Check that Django is running.'
+      'Cannot reach the weather server. Check the API connection.'
     )
   }
 
@@ -83,7 +112,9 @@ export async function fetchCorridorWeather(
   try {
     data = await response.json()
   } catch {
-    throw new Error('The weather server returned an invalid response.')
+    throw new Error(
+      'The weather server returned an invalid response.'
+    )
   }
 
   if (!response.ok) {
